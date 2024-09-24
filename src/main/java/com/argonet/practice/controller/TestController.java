@@ -1,18 +1,19 @@
-package com.argonet.practice;
+package com.argonet.practice.controller;
 
 import com.argonet.practice.service.TestService;
 import com.argonet.practice.vo.AffiliationVO;
 import com.argonet.practice.vo.AuthorVO;
 import com.argonet.practice.vo.MeshHeadingVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -21,28 +22,24 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 @Slf4j
 @Controller
-public class Test {
-
+public class TestController {
     @Autowired
     TestService testService;
 
-    public static void main(String[] args) throws IOException {
-
-        Test test = new Test();
-        log.info("시작");
-
-//        test.getUpdatedGZ();
-
-        String xmlFile = "C:\\pubmed\\downFiles\\unzip\\pubmed24n1219.xml";
-        test.openXmlFile(xmlFile);
-
-        log.info("끝");
+    @GetMapping("/unionTest")
+    public String unionTest() {
+//        String xmlFile = "C:\\pubmed\\downFiles\\unzip\\pubmed24n1219.xml";
+//        openXmlFile(xmlFile);
+        return "index";
     }
 
     private void getUpdatedGZ() throws IOException {

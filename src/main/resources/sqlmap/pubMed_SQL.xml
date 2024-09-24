@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.argonet.practice.TestMapper">
+<mapper namespace="com.argonet.practice.mapper.TestMapper">
     <insert id="insertAffiliation" parameterType="AffiliationVO">
         INSERT INTO AFFILIATION(ARTICLE_ID, AUTHOR_SEQ, AFFILIATION_SEQ, PMID, AFFILIATION_INFO, AUTHOR_EMAIL)
         <foreach collection="list" item="vo" separator="UNION ALL">
@@ -21,5 +21,9 @@
             SELECT #{vo.articleId}, #{vo.meshSeq}, #{vo.pmid}, #{vo.meshTerms}, #{vo.meshUi}, #{vo.majorTopicYn} FROM DUAL
         </foreach>
     </insert>
+
+    <select id="getTable" parameterType="String">
+        SELECT name FROM test where id=1
+    </select>
 </mapper>
 

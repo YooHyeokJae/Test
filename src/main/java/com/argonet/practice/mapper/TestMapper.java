@@ -1,4 +1,4 @@
-package com.argonet.practice;
+package com.argonet.practice.mapper;
 
 import com.argonet.practice.vo.AffiliationVO;
 import com.argonet.practice.vo.AuthorVO;
@@ -15,4 +15,6 @@ public interface TestMapper {
     int insertAuthor(List<AuthorVO> authorVOList);
 
     int insertMeshHeading(List<MeshHeadingVO> meshHeadingVOList);
+
+    String getTable();
 }
