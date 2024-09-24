@@ -1,0 +1,7 @@
+2024-09-12 16:37:44.341 [main] [INFO] c.a.p.Test[main:15] - 시작 
+2024-09-12 16:37:44.345 [main] [TRACE] c.a.p.Test[main:16] - t 
+2024-09-12 16:37:44.345 [main] [DEBUG] c.a.p.Test[main:17] - d 
+2024-09-12 16:37:44.345 [main] [INFO] c.a.p.Test[main:18] - i 
+2024-09-12 16:37:44.345 [main] [WARN] c.a.p.Test[main:19] - w 
+2024-09-12 16:37:44.346 [main] [ERROR] c.a.p.Test[main:20] - e 
+2024-09-12 16:37:44.346 [main] [INFO] c.a.p.Test[main:21] - 끝 
