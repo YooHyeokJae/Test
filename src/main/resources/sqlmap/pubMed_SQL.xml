@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.argonet.practice.TestMapper">
+    <insert id="insertAffiliation" parameterType="AffiliationVO">
+        INSERT INTO AFFILIATION(ARTICLE_ID, AUTHOR_SEQ, AFFILIATION_SEQ, PMID, AFFILIATION_INFO, AUTHOR_EMAIL)
+        <foreach collection="list" item="vo" separator="UNION ALL">
+            SELECT #{vo.articleId}, #{vo.authorSeq}, #{vo.affiliationSeq}, #{vo.pmid}, #{vo.affiliationInfo}, #{vo.authorEmail} FROM DUAL
+        </foreach>
+    </insert>
+
+    <insert id="insertAuthor" parameterType="AuthorVO">
+        INSERT INTO AUTHOR(ARTICLE_ID, AUTHOR_SEQ, PMID, VALID_YN, EQUAL_CONTRIB, LAST_NAME, FORE_NAME, INITIALS)
+        <foreach collection="list" item="vo" separator="UNION ALL">
+            SELECT #{vo.articleId}, #{vo.authorSeq}, #{vo.pmid}, #{vo.validYn}, #{vo.equalContrib}, #{vo.lastName}, #{vo.foreName}, #{vo.initials} FROM DUAL
+        </foreach>
+    </insert>
+
+    <insert id="insertMeshHeading" parameterType="MeshHeadingVO">
+        INSERT INTO MESH_HEADING(ARTICLE_ID, MESH_SEQ, PMID, MESH_TERMS, MESH_UI, MAJOR_TOPIC_YN)
+        <foreach collection="list" item="vo" separator="UNION ALL">
+            SELECT #{vo.articleId}, #{vo.meshSeq}, #{vo.pmid}, #{vo.meshTerms}, #{vo.meshUi}, #{vo.majorTopicYn} FROM DUAL
+        </foreach>
+    </insert>
+</mapper>
+

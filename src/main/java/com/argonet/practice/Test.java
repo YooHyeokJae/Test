@@ -25,16 +25,7 @@ import java.util.zip.GZIPInputStream;
 @Slf4j
 public class Test {
 
-    private static int AFFILIATION_INFO = 0;
-    private static int AUTHOR_EMAIL = 0;
-    private static int VALID_YN = 0;
-    private static int EQUAL_CONTRIB = 0;
-    private static int LAST_NAME = 0;
-    private static int FORE_NAME = 0;
-    private static int INITIALS = 0;
-    private static int MESH_TERMS = 0;
-    private static int MESH_UI = 0;
-    private static int MAJOR_TOPIC_YN = 0;
+    private TestMapper testMapper;
 
     private static int REGISTRY_NUMBER = 0;
     private static int CHEMICAL_SUBSTANCE = 0;
@@ -46,7 +37,8 @@ public class Test {
     private static int REFERENCE_PMID = 0;
     private static int CITATION = 0;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)  {
+
         Test test = new Test();
         log.info("시작");
 
@@ -66,7 +58,7 @@ public class Test {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String date = sdf.format(new Date());
-//        date = "2024-09-22";
+//        date = "2024-09-23";
 
         for (String line : splitArr) {
             if (!line.contains("pubmed24n")) continue;
@@ -204,15 +196,18 @@ public class Test {
 
 
                     // PUBMED_ARTICLE INSERT
-                    parsingArticleInfo(E_pubmedArticle);
+                    String pmid1 = parsingArticleInfo(E_pubmedArticle);
 
                     // PUBMED_ARTICLE_AUTHOR, PUBMED_ARTICLE_AFFILIATION, PUBMED_ARTICLE_MESH INSERT
-                    parsingAuthorAndMesh(E_pubmedArticle);
+                    String pmid2 = parsingAuthorAndMesh(E_pubmedArticle);
 
                     // PUBMED_ARTICLE_CHEMICAL, PUBMED_ARTICLE_GRANT, PUBMED_ARTICLE_REFERENCE INSERT
 
-                    log.info("----------------------------------------------------------------------------------------");
-
+                    if(pmid1.equals(pmid2)){
+                        log.info("{}", pmid1);
+                    }else{
+                        log.error("{}\t{}", pmid1, pmid2);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -221,7 +216,7 @@ public class Test {
 
     }
 
-    private void parsingArticleInfo(Element element){
+    private String parsingArticleInfo(Element element){
         Element E_article = (Element) element.getElementsByTagName("Article").item(0);
         Element E_dateCompleted = (Element) element.getElementsByTagName("DateCompleted").item(0);
         Element E_dateRevised = (Element) element.getElementsByTagName("DateRevised").item(0);
@@ -303,6 +298,9 @@ public class Test {
         Date modDate = new Date();
 
 //      db insert
+        log.info("need to insert articleInfo");
+
+        return pmid;
     }
 
     private Date getDateCompletedOrRevised(Element element) {
@@ -406,7 +404,7 @@ public class Test {
         return IDs;
     }
 
-    private void parsingAuthorAndMesh(Element element){
+    private String parsingAuthorAndMesh(Element element){
 
         Element E_article = (Element) element.getElementsByTagName("Article").item(0);
         Element E_pubmedData = (Element) element.getElementsByTagName("PubmedData").item(0);
@@ -427,10 +425,14 @@ public class Test {
         if(E_meshHeadingList != null) {
             getMeshKeyword(E_meshHeadingList, articleId, pmid);
         }
-
+        return pmid;
     }
 
     private void getAuthorList(Element E_authorList, int articleId, String pmid){
+        // union insert를 위한 리스트 변수
+        List<AffiliationVO> affiliationVOList = new ArrayList<>();
+        List<AuthorVO> authorVOList = new ArrayList<>();
+
         NodeList authorList = E_authorList.getElementsByTagName("Author");
         for(int seq=0; seq<authorList.getLength(); seq++){
             Element E_author = (Element) authorList.item(seq);
@@ -445,9 +447,9 @@ public class Test {
             NodeList affiliationInfoList = E_author.getElementsByTagName("AffiliationInfo");
             int affiliationLength = affiliationInfoList.getLength();
             if(affiliationLength > 0){
+
                 for(int j=0; j<affiliationLength; j++){
                     Element E_affiliation = (Element) affiliationInfoList.item(j);
-
                     affiliation = E_affiliation.getTextContent();
 
                     if(affiliation.getBytes().length > 2000) continue;
@@ -466,22 +468,29 @@ public class Test {
                     }
 
                     AffiliationVO affiliationVO = new AffiliationVO(articleId, seq+1, j+1, pmid, affiliation, email);
-                    log.info("affiliationVO: {}", affiliationVO);
+                    affiliationVOList.add(affiliationVO);
+//                    log.info("affiliationVO: {}", affiliationVO);
 //                    db insert
 //                    int cnt = this.pubMedService.insertAffiliation(affiliationVO);
                 }
             }
 
             AuthorVO authorVO = new AuthorVO(articleId, seq+1, pmid, validYn, equalCont, lastName, foreName, initials);
-
+            authorVOList.add(authorVO);
             // insert into database
-            log.info("authorVO: {}", authorVO);
+//            log.info("authorVO: {}", authorVO);
 //            db insert
 //            int cnt = this.pubMedService.insertAuthor(authorVO);
+
+            int cnt1 = testMapper.insertAffiliation(affiliationVOList);
+            int cnt2 = testMapper.insertAuthor(authorVOList);
         }
     }
 
     private void getMeshKeyword(Element E_meshHeadingList, int articleId, String pmid){
+        // union insert를 위한 리스트 변수
+        List<MeshHeadingVO> meshHeadingVOList = new ArrayList<>();
+
         NodeList meshHeadingList = E_meshHeadingList.getElementsByTagName("MeshHeading");
         for(int j=0, seq=1; j<meshHeadingList.getLength(); j++){
             Element E_meshHeading = (Element) meshHeadingList.item(j);
@@ -497,9 +506,10 @@ public class Test {
                     String majorTopicYn = E_qualifier.getAttribute("MajorTopicYN").equals("Y") ? "Y" : "N";
 
                     MeshHeadingVO meshHeadingVO = new MeshHeadingVO(articleId, seq++, pmid, meshTerms, meshUi, majorTopicYn);
+                    meshHeadingVOList.add(meshHeadingVO);
 
                     // insert into database
-                    log.info("meshHeadingVO: {}", meshHeadingVO);
+//                    log.info("meshHeadingVO: {}", meshHeadingVO);
 //                    db insert
 //                    int cnt = this.pubMedService.insertMeshHeading(meshHeadingVO);
                 }
@@ -510,12 +520,14 @@ public class Test {
                 String majorTopicYn = descriptorName.getAttribute("MajorTopicYN");
 
                 MeshHeadingVO meshHeadingVO = new MeshHeadingVO(articleId, seq++, pmid, meshTerms, meshUi, majorTopicYn);
+                meshHeadingVOList.add(meshHeadingVO);
 
                 // insert into database
-                log.info("meshHeadingVO: {}", meshHeadingVO);
+//                log.info("meshHeadingVO: {}", meshHeadingVO);
 //                db insert
 //                int cnt = this.pubMedService.insertMeshHeading(meshHeadingVO);
             }
+            int cnt = testMapper.insertMeshHeading(meshHeadingVOList);
         }
     }
 
@@ -525,7 +537,7 @@ public class Test {
         File[] fileArr = dir.listFiles();
         if(fileArr != null) {
             String dest = "C://pubmed/xmlFiles/";
-            for(int i=263; i<fileArr.length; i++){
+            for(int i=0; i<fileArr.length; i++){
                 File file = fileArr[i];
 //            for(File file : fileArr){
                 // decompress File
@@ -542,19 +554,7 @@ public class Test {
                              "\tGRANT_ID: " + GRANT_ID + "\tACRONYM: " + ACRONYM + "\tAGENCY: " + AGENCY + "\tCOUNTRY: " + COUNTRY +
                              "\tREFERENCE_PMID: " + REFERENCE_PMID + "\tCITATION: " + CITATION;
 
-                try {
-                    File txtFile = new File("C:/logs/dataSize.log");
-                    if (!txtFile.exists()) {
-                        boolean create = txtFile.createNewFile();
-                    }
-
-                    FileWriter fw = new FileWriter(txtFile, true);
-                    BufferedWriter bw = new BufferedWriter(fw);
-                    bw.write(str + "\r\n");
-                    bw.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                writeTxt("C:/logs/dataSize.log", str);
 
                 // file delete
                 if(xmlFile != null){
@@ -635,11 +635,19 @@ public class Test {
             Element E_articleIdList = (Element) E_grant.getElementsByTagName("ArticleIdList").item(0);
             Element E_articleId = E_articleIdList != null ? (Element) (E_articleIdList).getElementsByTagName("ArticleId").item(0) : null;
 
-            String referencePmid = E_articleId != null ? E_articleId.getTextContent() : null;
+            String referencePmid = E_articleId != null ?
+                    (E_articleId.getAttribute("IdType").equals("pubmed") ? E_articleId.getTextContent() : null) : null;
+            if(referencePmid != null && referencePmid.equals("NOT_FOUND;INVALID_JOURNAL"))   referencePmid = null;
+
             String citation = E_citation != null ? E_citation.getTextContent() : null;
 
             if(referencePmid != null && referencePmid.length() > REFERENCE_PMID) REFERENCE_PMID = referencePmid.length();
             if(citation != null && citation.length() > CITATION) CITATION = citation.length();
+
+            if(citation != null && citation.length() > 1000) {
+                String str = pmid + "\t" + citation.length() + "\t" + citation;
+                writeTxt("C:/logs/citation.log", str);
+            }
         }
         return referenceList.getLength();
     }
@@ -658,6 +666,20 @@ public class Test {
             if(acronym != null && acronym.length() > ACRONYM) ACRONYM = acronym.length();
             if(agency != null && agency.length() > AGENCY) AGENCY = agency.length();
             if(country != null && country.length() > COUNTRY) COUNTRY = country.length();
+
+
+            if(grantId != null && grantId.length() > 100) {
+                String str = pmid + "\t" + grantId.length() + "\t" + grantId;
+                writeTxt("C:/logs/grantId.log", str);
+            }
+            if(acronym != null && acronym.length() > 30) {
+                String str = pmid + "\t" + acronym.length() + "\t" + acronym;
+                writeTxt("C:/logs/acronym.log", str);
+            }
+            if(agency != null && agency.length() > 300) {
+                String str = pmid + "\t" + agency.length() + "\t" + agency;
+                writeTxt("C:/logs/agency.log", str);
+            }
         }
         return grantList.getLength();
     }
@@ -676,7 +698,28 @@ public class Test {
             if(registryNumber != null && registryNumber.length() > REGISTRY_NUMBER) REGISTRY_NUMBER = registryNumber.length();
             if(chemicalSubstance != null && chemicalSubstance.length() > CHEMICAL_SUBSTANCE) CHEMICAL_SUBSTANCE = chemicalSubstance.length();
             if(chemicalUi != null && chemicalUi.length() > CHEMICAL_UI) CHEMICAL_UI = chemicalUi.length();
+
+            if(chemicalSubstance != null && chemicalSubstance.length() > 200){
+                String str = pmid + "\t" + chemicalSubstance.length() + "\t" + chemicalSubstance;
+                writeTxt("C:/logs/chemicalSubstance.log", str);
+            }
         }
         return chemicalList.getLength();
+    }
+
+    private void writeTxt(String file, String str){
+        try {
+            File txtFile = new File(file);
+            if (!txtFile.exists()) {
+                boolean create = txtFile.createNewFile();
+            }
+
+            FileWriter fw = new FileWriter(txtFile, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(str + "\r\n");
+            bw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
