@@ -21,9 +21,5 @@
             SELECT #{vo.articleId}, #{vo.meshSeq}, #{vo.pmid}, #{vo.meshTerms}, #{vo.meshUi}, #{vo.majorTopicYn} FROM DUAL
         </foreach>
     </insert>
-
-    <select id="getTable" parameterType="String">
-        SELECT name FROM test where id=1
-    </select>
 </mapper>
 
